@@ -30,9 +30,14 @@ echo "1. Public IP"
 echo "2. Domain"
 read -p "Enter your choice (1 or 2): " choice
 
+# Step 3: Ask for port number
+read -p "Enter the port number to proxy to (default: 5000): " port
+port=${port:-5000}
+
 if [[ "$choice" == "1" ]]; then
     # Public IP configuration
     print_message "=== Configuring NGINX for public IP ===" "blue"
+    sudo mkdir -p /etc/nginx/custom
     cat <<EOF | sudo tee /etc/nginx/custom/reverse-proxy.conf
 server {
     listen 80;
@@ -40,7 +45,7 @@ server {
     server_name _;  # Accept connections from any host (public IP)
 
     location / {
-        proxy_pass http://127.0.0.1:5000;  # Replace with your application's IP and port
+        proxy_pass http://127.0.0.1:$port;  # Replace with your application's IP and port
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -64,6 +69,7 @@ elif [[ "$choice" == "2" ]]; then
         -subj "/C=US/ST=State/L=City/O=Organization/CN=$domain" || { print_message "Failed to generate SSL certificates." "red"; exit 1; }
 
     # Create NGINX configuration
+    sudo mkdir -p /etc/nginx/custom
     cat <<EOF | sudo tee /etc/nginx/custom/$domain.conf
 server {
     listen 80;
@@ -79,7 +85,7 @@ server {
     ssl_certificate_key /etc/nginx/ssl/$domain.key;
 
     location / {
-        proxy_pass http://127.0.0.1:5000;  # Replace with your application's IP and port
+        proxy_pass http://127.0.0.1:$port;  # Replace with your application's IP and port
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -94,16 +100,16 @@ else
     exit 1
 fi
 
-# Step 3: Test and restart NGINX
+# Step 4: Test and restart NGINX
 print_message "=== Testing NGINX configuration ===" "blue"
 sudo nginx -t || { print_message "NGINX configuration test failed." "red"; exit 1; }
 
 print_message "=== Restarting NGINX ===" "blue"
 sudo systemctl restart nginx || { print_message "Failed to restart NGINX." "red"; exit 1; }
 
-# Step 4: Verify setup
+# Step 5: Verify setup
 if [[ "$choice" == "1" ]]; then
-    print_message "NGINX reverse proxy is set up for public IP. Visit http://<your-public-ip> to verify." "green"
+    print_message "NGINX reverse proxy is set up for public IP on port $port. Visit http://<your-public-ip> to verify." "green"
 elif [[ "$choice" == "2" ]]; then
-    print_message "NGINX reverse proxy is set up for domain: $domain. Visit https://$domain to verify." "green"
+    print_message "NGINX reverse proxy is set up for domain: $domain on port $port. Visit https://$domain to verify." "green"
 fi
