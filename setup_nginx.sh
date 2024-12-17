@@ -34,14 +34,17 @@ read -p "Enter your choice (1 or 2): " choice
 read -p "Enter the port number to proxy to (default: 5000): " port
 port=${port:-5000}
 
-# Step 4: Create the configuration file
+# Step 4: Get the public IP if it's for public IP configuration
 if [[ "$choice" == "1" ]]; then
+    # Get the public IP
+    public_ip=$(curl -s ifconfig.me)
+    print_message "Public IP detected: $public_ip" "blue"
     # Public IP configuration
     print_message "=== Configuring NGINX for public IP ===" "blue"
     cat <<EOF | sudo tee /etc/nginx/conf.d/reverse-proxy.conf
 server {
     listen 80;
-    server_name _;  # Accept connections from any host (public IP)
+    server_name $public_ip;  # Set server_name to public IP
 
     location / {
         proxy_pass http://127.0.0.1:$port;
@@ -54,7 +57,7 @@ server {
 
     location /test-path {
         default_type text/plain;
-        return 200 "NGINX is working correctly!\n";
+        return 200 "Hi utkr8j! NGINX is working correctly!\n";
     }
 }
 EOF
@@ -118,7 +121,7 @@ sudo systemctl restart nginx || { print_message "Failed to restart NGINX." "red"
 # Step 6: Verify setup
 if [[ "$choice" == "1" ]]; then
     print_message "NGINX reverse proxy is set up for public IP on port $port." "green"
-    print_message "Test it by visiting: http://<your-public-ip>/test-path" "green"
+    print_message "Test it by visiting: http://$public_ip/test-path" "green"
 elif [[ "$choice" == "2" ]]; then
     print_message "NGINX reverse proxy is set up for domain: $domain with SSL on port $port." "green"
     print_message "Test it by visiting: https://$domain/test-path" "green"
