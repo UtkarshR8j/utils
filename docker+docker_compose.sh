@@ -25,39 +25,29 @@ sudo apt-get update || { print_message "Failed to update package lists." "red"; 
 
 # Step 2: Install prerequisites
 print_message "=== Installing prerequisites ===" "blue"
-sudo apt-get install -y ca-certificates curl || { print_message "Failed to install prerequisites." "red"; exit 1; }
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common || { print_message "Failed to install prerequisites." "red"; exit 1; }
 
 # Step 3: Add Docker's official GPG key
 print_message "=== Adding Docker's GPG key ===" "blue"
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc || { print_message "Failed to download Docker's GPG key." "red"; exit 1; }
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - || { print_message "Failed to add Docker's GPG key." "red"; exit 1; }
 
 # Step 4: Add Docker repository
 print_message "=== Adding Docker repository ===" "blue"
-echo \  
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \" 
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null || { print_message "Failed to add Docker repository." "red"; exit 1; }
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) test" || { print_message "Failed to add Docker repository." "red"; exit 1; }
 sudo apt-get update || { print_message "Failed to update package lists after adding Docker repository." "red"; exit 1; }
 
 # Step 5: Install Docker packages
 print_message "=== Installing Docker packages ===" "blue"
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || { print_message "Failed to install Docker packages." "red"; exit 1; }
+sudo apt-get install -y docker-ce || { print_message "Failed to install Docker packages." "red"; exit 1; }
 
-# Step 6: Install Docker Compose
-print_message "=== Installing Docker Compose ===" "blue"
-sudo apt install -y docker-compose || { print_message "Failed to install Docker Compose." "red"; exit 1; }
-
-# Step 7: Check Docker status
+# Step 6: Check Docker service status
 print_message "=== Checking Docker service status ===" "blue"
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo systemctl status docker || { print_message "Docker service is not running." "red"; exit 1; }
 
-# Step 8: Verify Docker and Docker Compose installation
+# Step 7: Verify Docker installation
 print_message "=== Verifying Docker installation ===" "blue"
 docker --version || { print_message "Docker is not installed correctly." "red"; exit 1; }
-docker-compose --version || { print_message "Docker Compose is not installed correctly." "red"; exit 1; }
 
-print_message "Docker and Docker Compose setup completed successfully!" "green"
+print_message "Docker setup completed successfully!" "green"
