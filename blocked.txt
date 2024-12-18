@@ -1571,13 +1571,13 @@
 ||www.tiltbrush.com^
 ||g.co^
 ||goo.gl^
-||youtu.be^
-||yt.be^
+!||youtu.be^  #unblocked youtube
+!||yt.be^     #unblocked youtube
 ||withyoutube.com^
 ||youtube-nocookie.com^
 ||youtube.be^
 ||youtube.co.uk^
-||youtube.com^
+!||youtube.com^   !unblocked youtube
 ||youtube.de^
 ||youtube.es^
 ||youtube.fr^
