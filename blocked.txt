@@ -744,7 +744,7 @@
 ||googletraveladservices-cn.com^
 ||googletraveladservices.com^
 ||googleusercontent.com^
-||googlevideo.com^
+!||googlevideo.com^  #unblocked youtube
 ||googlew.com^
 ||googlezip.net^
 ||gooogleapi.com^
