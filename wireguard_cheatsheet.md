@@ -1,7 +1,9 @@
 # Client
-'''cd /etc/wireguard
-'''wg genkey | tee privatekey | wg pubkey > publickey
-'''vi wg0.conf
+'''
+cd /etc/wireguard
+wg genkey | tee privatekey | wg pubkey > publickey
+vi wg0.conf
+'''
 
 [Interface]
 PrivateKey = 
