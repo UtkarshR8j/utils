@@ -5,7 +5,7 @@ echo "Updating package repository..."
 pkg update -y && pkg upgrade -y
 
 # Define the list of packages to install
-setup=(openssh git wget curl rclone tmux proot distro)
+setup=(openssh git wget curl rclone tmux proot-distro)
 
 # Install each package in the setup array
 echo "Installing packages..."
