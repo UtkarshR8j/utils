@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure the script has Unix line endings (removes \r)
+sed -i 's/\r$//' "$0"
+
 # Exit immediately if a command exits with a non-zero status
 set -e
 
