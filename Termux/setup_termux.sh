@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Ensure the script has Unix line endings (removes \r)
-sed -i 's/\r$//' "$0"
-
 # Exit immediately if a command exits with a non-zero status
 set -e
 
@@ -20,25 +17,22 @@ for pkg in "${packages[@]}"; do
     pkg install -y "$pkg"
 done
 
-# Set a custom username
-username="utkarsh"
-echo "Setting username to $username..."
+# Allow user 'utkarsh' to ssh into Termux by modifying SSH config
+echo "Configuring SSH for utkarsh..."
 
-# Ensure Termux configuration directory exists
-termux_config="$HOME/.termux"
-mkdir -p "$termux_config"
+# Ensure the SSH config file allows the user 'utkarsh' to connect
+sshd_config="/data/data/com.termux/files/usr/etc/ssh/sshd_config"
 
-# Customize the shell prompt with the new username
-echo "Customizing shell prompt..."
-if ! grep -q "export PS1=" "$HOME/.bashrc"; then
-    echo "export PS1='[\u@$username:\w]\$ '" >> "$HOME/.bashrc"
+# Check if the AllowUsers line exists and add 'utkarsh' if not present
+if ! grep -q "AllowUsers" "$sshd_config"; then
+    echo "AllowUsers utkarsh" >> "$sshd_config"
+else
+    # If AllowUsers already exists, add 'utkarsh' to it
+    sed -i 's/AllowUsers.*/& utkarsh/' "$sshd_config"
 fi
 
-# Reload bash configuration
-source "$HOME/.bashrc"
-
-# Start the SSH server
-echo "Starting SSH server..."
+# Restart the SSH service to apply changes
+echo "Restarting SSH service..."
 sshd
 
 # Display the device's IP address for SSH access
@@ -48,7 +42,7 @@ if [ -z "$ip_address" ]; then
     echo "Could not fetch the IP address. Ensure your device is connected to a network."
 else
     echo "SSH server is running. Connect using the following command:"
-    echo "ssh $username@$ip_address"
+    echo "ssh utkarsh@$ip_address"
 fi
 
 # Success message
