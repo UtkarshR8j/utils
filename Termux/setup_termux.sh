@@ -35,15 +35,9 @@ fi
 echo "Restarting SSH service..."
 sshd
 
-# Display the device's IP address for SSH access
-echo "Fetching IP address..."
-ip_address=$(ip addr show wlan0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -1)
-if [ -z "$ip_address" ]; then
-    echo "Could not fetch the IP address. Ensure your device is connected to a network."
-else
-    echo "SSH server is running. Connect using the following command:"
-    echo "ssh utkarsh@$ip_address"
-fi
-
 # Success message
 echo "Termux setup is complete!"
+
+
+
+
