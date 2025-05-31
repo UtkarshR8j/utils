@@ -1646,6 +1646,28 @@
 ||wwn-api.nest.com^
 ||www.nest.com^
 ||jibemobile.com^
+||opps-api.getwarmly.com^$client='10.7.0.4'
+||vimkit.io^$important
+||ucarecdn.com^$important
+||*.wiresock.net^$important
+||*.arpa
+||www.googleadservices.com^$important
+||mdp-appconf-in.heytapdl.com^$important
+||thumb-v3.xhcdn.com^$important
+||plus.l.google.com^$important
+||babycenter.com^$important
+||casaos.app^$important
+||play.googleapis.com^$important
+||routergtest14.oneplus.com^$important
+||*.vip^$important
+||cdn.fwupd.org^$important
+||brave.com^$important
+||heytapmobile.com^$important
+||l-msedge.net^$important
+||appcenter.ms^$important
+||ws-cda22.heytapdownload.com^$important
+||target.substack-custom-domains.com^$important
+||z-m-gateway.facebook.com^$important
 
 
 
