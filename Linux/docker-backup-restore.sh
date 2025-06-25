@@ -22,22 +22,20 @@ print_header() {
 EOF
 }
 
-### CHECK FOR docker-compose ###
 check_docker_compose() {
   if ! command -v docker-compose &>/dev/null; then
     echo "[!] docker-compose not found. Please install it manually."
   fi
 }
 
-### LIST ALL CONTAINERS ###
 list_containers() {
   docker ps -a --format '{{.Names}}'
 }
 
-### BACKUP A SINGLE CONTAINER ###
 backup_container() {
   local container=$1
   local target=$2
+  mkdir -p "$target"
 
   echo "[*] Backing up: $container"
   mkdir -p "$TMP_DIR"
@@ -47,15 +45,13 @@ backup_container() {
   docker inspect "$container" > "$TMP_DIR/container-inspect.json"
   docker save "$image" -o "$TMP_DIR/image.tar"
 
-  # Named Docker Volumes
   mapfile -t named_volumes < <(docker inspect "$container" --format '{{range .Mounts}}{{if .Name}}{{.Name}}{{"\n"}}{{end}}{{end}}')
   for vol in "${named_volumes[@]}"; do
     echo "    - Volume: $vol"
     mkdir -p "$TMP_DIR/volumes/$vol"
-    docker run --rm -v "$vol":/from -v "$TMP_DIR/volumes/$vol":/to alpine sh -c "cd /from && cp -a . /to/"
+    docker run --rm -v "$vol":/from -v "$TMP_DIR/volumes/$vol":/to alpine sh -c "[[ -d /from ]] && cd /from && cp -a . /to/ || echo '      [!] Volume $vol is empty or not mounted.'"
   done
 
-  # Host Mounts (bind)
   mapfile -t binds < <(docker inspect "$container" --format '{{range .Mounts}}{{if not .Name}}{{.Source}}::{{.Destination}}{{"\n"}}{{end}}{{end}}')
   for bind in "${binds[@]}"; do
     src=$(cut -d ':' -f1 <<< "$bind")
@@ -70,22 +66,18 @@ backup_container() {
     fi
   done
 
-  mkdir -p "$target"
   cp -r "$TMP_DIR"/* "$target/"
-  echo "[✓] Container backup complete: $target"
+  echo "[✓] Backup complete: $target"
 }
 
-### RESTORE FROM SNAPSHOT ###
 restore_container() {
   local root=$1
-
   for dir in "$root"/*/; do
     echo "[*] Restoring snapshot: $dir"
     cp -r "$dir"/* "$TMP_DIR/"
 
     [ -f "$TMP_DIR/image.tar" ] && docker load -i "$TMP_DIR/image.tar"
 
-    # Restore Volumes
     if [ -d "$TMP_DIR/volumes" ]; then
       for vol_dir in "$TMP_DIR/volumes/"*; do
         vol_name=$(basename "$vol_dir")
@@ -95,7 +87,6 @@ restore_container() {
       done
     fi
 
-    # Restore Bind Mounts
     if [ -d "$TMP_DIR/host_mounts" ]; then
       for mount_dir in "$TMP_DIR/host_mounts/"*; do
         key=$(basename "$mount_dir")
@@ -110,7 +101,6 @@ restore_container() {
       done
     fi
 
-    # Restore docker-compose
     if [ -f "$TMP_DIR/project/docker-compose.yml" ]; then
       cp "$TMP_DIR/project/docker-compose.yml" .
       [ -f "$TMP_DIR/project/.env" ] && cp "$TMP_DIR/project/.env" .
@@ -123,7 +113,6 @@ restore_container() {
   echo "[✓] Restore complete."
 }
 
-### FLAG-BASED MODE ###
 if [[ "$#" -gt 0 ]]; then
   case "$1" in
     --backup-all)
@@ -137,18 +126,15 @@ if [[ "$#" -gt 0 ]]; then
           *) shift ;;
         esac
       done
-
       for c in $(list_containers); do
         path="$TMP_DIR/$c"
         backup_container "$c" "$path"
-
         if [[ -n "$DEST_LOCAL" ]]; then
           final="$DEST_LOCAL/$c/$DATE"
           mkdir -p "$final"
           cp -r "$path"/* "$final/"
           echo "[✓] Local saved: $final"
         fi
-
         if [[ -n "$DEST_REMOTE" ]]; then
           rclone copy "$path" "$DEST_REMOTE/$c/$DATE" --progress
           echo "[✓] Remote uploaded: $DEST_REMOTE/$c/$DATE"
@@ -168,7 +154,6 @@ if [[ "$#" -gt 0 ]]; then
           *) shift ;;
         esac
       done
-
       if [[ -n "$SRC_LOCAL" ]]; then
         restore_container "$SRC_LOCAL"
       elif [[ -n "$SRC_REMOTE" ]]; then
@@ -180,7 +165,6 @@ if [[ "$#" -gt 0 ]]; then
       fi
       exit 0
       ;;
-
     *)
       echo "[!] Unknown flag: $1"
       exit 1
@@ -188,7 +172,6 @@ if [[ "$#" -gt 0 ]]; then
   esac
 fi
 
-### INTERACTIVE MENU ###
 print_header
 select option in "Backup one" "Backup all" "Restore one" "Restore all" "Quit"; do
   case $option in
@@ -198,11 +181,13 @@ select option in "Backup one" "Backup all" "Restore one" "Restore all" "Quit"; d
       read -p "Choose container (0-${#containers[@]}): " idx
       name="${containers[$idx]}"
       read -e -p "Backup directory: " path
+      mkdir -p "$path"
       backup_container "$name" "$path/$name/$DATE"
       break
       ;;
     "Backup all")
       read -e -p "Backup directory: " path
+      mkdir -p "$path"
       for name in $(list_containers); do
         backup_container "$name" "$path/$name/$DATE"
       done
@@ -224,4 +209,3 @@ select option in "Backup one" "Backup all" "Restore one" "Restore all" "Quit"; d
       ;;
   esac
 done
-
