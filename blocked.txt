@@ -1668,6 +1668,15 @@
 ||ws-cda22.heytapdownload.com^$important
 ||target.substack-custom-domains.com^$important
 ||z-m-gateway.facebook.com^$important
+||ups.analytics.yahoo.com
+||ad.mrtnsvr.com
+||ups.analytics.yahoo.com
+||user-sync.fwmrm.net
+||match.prod.bidr.io
+||ssum-sec.casalemedia.com
+
+
+
 
 
 
