@@ -1674,11 +1674,13 @@
 ||user-sync.fwmrm.net
 ||match.prod.bidr.io
 ||ssum-sec.casalemedia.com
-
-
-
-
-
+||wix.com
+||*parastorage*
+||*adtelligent*
+||*cookielaw*
+||*ziffstatic*
+||*pubmatic*
+||*facebook*
 
 #more blockers
 
