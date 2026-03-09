@@ -1680,7 +1680,7 @@
 ||*cookielaw*
 ||*ziffstatic*
 ||*pubmatic*
-||*facebook*
+||*.facebook.*^$important
 
 #more blockers
 
